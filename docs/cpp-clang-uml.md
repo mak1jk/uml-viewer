@@ -84,7 +84,7 @@ reusing or releasing the code beyond the fork and review process.
 | 1. Fork and baseline | Fork `mak1jk/uml-viewer`, `origin` fork, `upstream` `unclebob/uml-viewer`, branch `feat/cpp-clang-uml`; original suite: 343 examples, 2 failures with en-US locale | Done; both failures are recorded below |
 | 2. Real extraction | CMake/MSVC build and clang-uml 0.6.3 JSON extraction from the compilable fixture; two same-named `Node` classes, inheritance, dependency, overloads | Done |
 | 3. Adapter | `clj -M:spec`: 348 examples, 2 failures; C++ and source-window specs pass; adapter asserts edges, IDs, overloads and source locations | Done; full-suite failures match the baseline |
-| 4. Viewer | Viewer process launched on generated EDN; it reports watching the file. Fixture verifier removes and restores the dependency on that same EDN path and checks deterministic regeneration | Pipeline done. Visual navigation, source opening/highlight, and visible live reload remain **unverified**: this session's CUA reports no native app/window inventory and exposes no `listApps`/`listWindows`; next step is an interactive desktop check |
+| 4. Viewer | Viewer process launched on generated EDN, consumed a `:display` command, and reports watching that file. Fixture verifier removes and restores the dependency on the same EDN path and checks deterministic regeneration | Pipeline done. Visual navigation, source opening/highlight, and visible live reload remain **unverified**: this session's CUA reports no native app/window inventory and exposes no `listApps`/`listWindows`; next step is an interactive desktop check |
 
 The two unchanged full-suite failures on Windows are the LF-vs-CRLF assertion
 in `ir_generator_spec.clj:155` and the mailbox `:display` assertion in
