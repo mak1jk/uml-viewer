@@ -137,6 +137,11 @@
       (:coverage leaf) (assoc :coverage (:coverage leaf))
       (:ops leaf) (assoc :ops (:ops leaf))
       (:fields leaf) (assoc :fields (:fields leaf))
+      (:source-ident leaf) (assoc :source-ident (:source-ident leaf))
+      (:qualified-name leaf) (assoc :qualified-name (:qualified-name leaf))
+      (:clang-uml-id leaf) (assoc :clang-uml-id (:clang-uml-id leaf))
+      (:language leaf) (assoc :language (:language leaf))
+      (:metrics-status leaf) (assoc :metrics-status (:metrics-status leaf))
       hide? (assoc :hide-members true)
       (seq kids) (assoc :contents kids))))
 

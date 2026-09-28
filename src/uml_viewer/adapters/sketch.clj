@@ -491,7 +491,12 @@
           rows (detail/rows model)]
       (cond
         (detail/module-at rows y)
-        (source-window/open-member-window! (:source @!bridge) {:ns (:ns model)})
+        (when-not (= :cpp (get-in model [:class :language]))
+          (source-window/open-member-window! (:source @!bridge) {:ns (:ns model)}))
+
+        (detail/source-at rows y)
+        (source-window/open-member-window! (:source @!bridge)
+                                           (detail/source-at rows y))
 
         (detail/member-at rows y)
         (source-window/open-member-window! (:source @!bridge) (:ns model)
