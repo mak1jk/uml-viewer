@@ -92,13 +92,13 @@
                   (q/stroke-weight 1.5)
                   (q/triangle x y x1 y1 x2 y2))
       :diamond (let [back (- ang Math/PI)
-                     bx (+ x (* size (Math/cos back)))
-                     by (+ y (* size (Math/sin back)))]
+                     bx (+ x (* 2 size (Math/cos back)))
+                     by (+ y (* 2 size (Math/sin back)))]
                  (rgb bg)
                  (q/quad x y x1 y1 bx by x2 y2))
       :diamond-fill (let [back (- ang Math/PI)
-                          bx (+ x (* size (Math/cos back)))
-                          by (+ y (* size (Math/sin back)))]
+                          bx (+ x (* 2 size (Math/cos back)))
+                          by (+ y (* 2 size (Math/sin back)))]
                       (rgb ink)
                       (q/quad x y x1 y1 bx by x2 y2))
       (do
@@ -128,7 +128,9 @@
             obstacles (obstacle-rects scene e)]
         {:strokes (geom/gap-polyline samples obstacles layout/under-gap)
          :tip tip
-         :behind behind}))))
+         :behind behind
+         :start-tip (first samples)
+         :start-behind (second samples)}))))
 
 (defn- edge-ink [e selected?]
   (cond
@@ -148,7 +150,9 @@
     (doseq [sub (:strokes drawn)]
       (draw-polyline sub))
     (when (and (:head e) (:tip drawn))
-      (arrowhead (:head e) (:tip drawn) (:behind drawn)))))
+      (arrowhead (:head e) (:tip drawn) (:behind drawn)))
+    (when (and (:tail e) (:start-tip drawn) (:start-behind drawn))
+      (arrowhead (:tail e) (:start-tip drawn) (:start-behind drawn)))))
 
 (defn- pfont [italic? size]
   (try
@@ -362,7 +366,10 @@
    :classes "Declutter classes"})
 
 (defn- dep-label [d]
-  (str (name (:from d)) " -> " (name (:to d))))
+  (str (name (:from d)) " -> " (name (:to d))
+       (when (:kind d) (str " · " (name (:kind d))))
+       (when (:label d) (str " · " (:label d)))
+       (when (:access d) (str " [" (:access d) "]"))))
 
 (defn- draw-dep-triangle [ind]
   (let [[[x1 y1] [x2 y2] [x3 y3]] (:triangle ind)]

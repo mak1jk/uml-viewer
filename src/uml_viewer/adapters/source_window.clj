@@ -61,15 +61,32 @@
   [line]
   (str/replace (or line "") "\t" "  "))
 
+(defn- cpp-line-html [line column]
+  (let [line (or line "")
+        escaped (fn [text] (html-escape (expand-tabs text)))
+        n (when (and (number? column) (pos? column))
+            (min (count line) (dec (int column))))]
+    (if (and n (< n (count line)))
+      (str (escaped (subs line 0 n))
+           "<span class='src-col'>"
+           (escaped (subs line n (inc n)))
+           "</span>"
+           (escaped (subs line (inc n))))
+      (escaped line))))
+
 (defn source-lines->html
-  ([source] (source-lines->html source nil))
-  ([source highlight-line]
+  ([source] (source-lines->html source nil nil :clojure))
+  ([source highlight-line] (source-lines->html source highlight-line nil :clojure))
+  ([source highlight-line lang] (source-lines->html source highlight-line nil lang))
+  ([source highlight-line highlight-column lang]
    (let [lines (str/split (or source "") #"\r?\n" -1)]
      (->> lines
           (map-indexed (fn [idx line]
                          (let [n (inc idx)
                                hl? (and highlight-line (= n highlight-line))
-                               line-html (colorize-clojure-html (expand-tabs line))
+                               line-html (if (= :cpp lang)
+                                           (cpp-line-html line (when hl? highlight-column))
+                                           (colorize-clojure-html (expand-tabs line)))
                                visible-line (if (str/blank? line-html) "&nbsp;" line-html)]
                            (str "<tr class='" (if hl? "hl" "") "'>"
                                 "<td class='ln'>"
@@ -80,8 +97,12 @@
           (apply str)))))
 
 (defn source->html
-  ([title source] (source->html title source nil))
+  ([title source] (source->html title source nil nil :clojure))
   ([title source highlight-line]
+   (source->html title source highlight-line nil :clojure))
+  ([title source highlight-line lang]
+   (source->html title source highlight-line nil lang))
+  ([title source highlight-line highlight-column lang]
    (str "<html><head><style>"
         "body{margin:0;padding:0;background:#f8fafc;color:#111827;font-family:Menlo,Monaco,Consolas,monospace;}"
         ".hdr{padding:10px 12px;background:#e5e7eb;border-bottom:1px solid #cbd5e1;font-family:sans-serif;font-size:13px;}"
@@ -93,18 +114,19 @@
         ".code pre{margin:0;white-space:pre;tab-size:2;}"
         ".hl td{background:#fde68a;}"
         ".hl .ln{background:#fcd34d;}"
+        ".src-col{background:#f59e0b;color:#111827;}"
         ".cmt{color:#6b7280;}"
         ".str{color:#b45309;}"
         ".kw{color:#1d4ed8;}"
         "</style></head><body>"
         "<div class='hdr'>" (html-escape title) "</div>"
-        "<div class='src'><table>" (source-lines->html source highlight-line) "</table></div>"
+        "<div class='src'><table>" (source-lines->html source highlight-line highlight-column lang) "</table></div>"
         "</body></html>")))
 
 (defn- build-frame!
-  [title body line]
+  [title body line column lang]
   (let [frame (JFrame. title)
-        editor (JEditorPane. "text/html" (source->html title body line))
+        editor (JEditorPane. "text/html" (source->html title body line column lang))
         scroll (JScrollPane. editor)]
     (.setEditable editor false)
     (.setCaretPosition editor 0)
@@ -124,10 +146,14 @@
   `source-impl` satisfies `LanguageSource`. `ident` is a source identity
   map, or `ns-name` plus `member-name`."
   ([source-impl ident]
-   (when-let [{:keys [title body line]} (source/member-source source-impl ident)]
-     (SwingUtilities/invokeLater
-       (fn []
-         (build-frame! title body line)))
-     true))
+   (let [lang (or (:lang ident) :clojure)
+         resolved (if (= :cpp lang)
+                    (source/member-source :cpp ident)
+                    (source/member-source source-impl ident))]
+     (when-let [{:keys [title body line column lang]} resolved]
+       (SwingUtilities/invokeLater
+         (fn []
+           (build-frame! title body line column lang)))
+       true)))
   ([source-impl ns-name member-name]
    (open-member-window! source-impl {:ns ns-name :name member-name})))

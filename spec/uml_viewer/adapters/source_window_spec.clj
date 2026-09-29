@@ -21,4 +21,15 @@
   (it "anchors and highlights the member line"
     (let [doc (source-window/source->html "f.clj" "(ns f)\n(defn go [])\n" 2)]
       (should (str/includes? doc "name='here'"))
-      (should (str/includes? doc "class='hl'")))))
+      (should (str/includes? doc "class='hl'"))))
+
+  (it "renders C++ as escaped plain text without Clojure syntax coloring"
+    (let [doc (source-window/source->html "x.hpp" "int run() < 2;\n" 1 5 :cpp)]
+      (should (str/includes? doc "int <span class='src-col'>r</span>"))
+      (should (str/includes? doc "<span class='src-col'>r</span>"))
+      (should (str/includes? doc "un() &lt; 2;"))
+      (should-not (str/includes? doc "class='kw'"))))
+
+  (it "uses the original C++ column when a tab precedes it"
+    (let [doc (source-window/source->html "x.hpp" "\tint run();\n" 1 2 :cpp)]
+      (should (str/includes? doc "  <span class='src-col'>i</span>nt run();")))))

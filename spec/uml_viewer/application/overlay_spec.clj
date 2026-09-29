@@ -124,6 +124,17 @@
           painted (overlay/apply-metrics d {:crap {} :mutate {}})]
       (should= d painted)))
 
+  (it "leaves C++ overloads intact when Clojure metrics exist nearby"
+    (let [d {:hierarchical true
+             :language :cpp
+             :classes [{:id :app.Controller :name "Controller" :ns "app"
+                        :ops [{:name "run" :signature "int" :text "run(int)"}
+                              {:name "run" :signature "double" :text "run(double)"}]}]
+             :edges []}
+          metrics {:crap {"app" [{:name "run" :complexity 2}]}
+                   :mutate {}}]
+      (should= d (overlay/apply-metrics d metrics))))
+
   (it "stamps metrics files so a rewrite is visible"
     (let [root (.getCanonicalPath (io/file "target" (str "overlay-stamp-" (System/nanoTime))))
           crap-dir (io/file root ".metrics")]

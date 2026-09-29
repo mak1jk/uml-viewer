@@ -159,7 +159,10 @@
                 (emit acc :stats label
                       (assoc (format-cells (op-metrics op))
                         :private (boolean (:private op))
-                        :op-name (:name op)))))
+                        :op-name (:name op)
+                        :signature (:signature op)
+                        :overload-id (:overload-id op)
+                        :source-ident (:source-ident op)))))
             acc
             (:ops c))))
 
@@ -172,7 +175,7 @@
                     (or (:label (:package model))
                         (some-> (:package c) name)))
           acc {:rows [] :y pad}
-          acc (emit acc :name (:name c) {})
+          acc (emit acc :name (:name c) {:source-ident (:source-ident c)})
           acc (if (some? (:level c))
                 (emit acc :muted (str "Level " (:level c)) {})
                 acc)
@@ -181,6 +184,9 @@
                 acc)
           acc (if-let [ns-name (:ns model)]
                 (emit acc :module ns-name {:module true})
+                acc)
+          acc (if (= :unavailable (:metrics-status c))
+                (emit acc :muted "Metrics unavailable for this C++ diagram" {})
                 acc)
           acc (emit acc :muted pack {})
           acc (if-let [t (:title model)]
@@ -199,7 +205,7 @@
                 acc)
           acc (if (seq (:fields c))
                 (reduce (fn [acc f]
-                          (emit acc :field (:text f) {}))
+                          (emit acc :field (:text f) {:source-ident (:source-ident f)}))
                         (heading acc "Fields")
                         (:fields c))
                 acc)
@@ -235,6 +241,15 @@
           (when (and (:op-name row)
                      (<= (:y row) y (+ (:y row) (:h row) -1)))
             (:op-name row)))
+        rows))
+
+(defn source-at
+  "Source identity for a class, field, or method row under content-y, or nil."
+  [rows y]
+  (some (fn [row]
+          (when (and (:source-ident row)
+                     (<= (:y row) y (+ (:y row) (:h row) -1)))
+            (:source-ident row)))
         rows))
 
 (defn module-at

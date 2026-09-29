@@ -31,9 +31,10 @@ level.
 
 ## Tech
 
-A live Quil app that lays out and draws UML from an EDN IR. A **policy** plus
-a language-specific parser write the topology; this tool displays it, routes
-the arrows, colors CRAP, and lets you click.
+A live Quil app that lays out and draws UML from an EDN IR. The Clojure path
+uses a **policy** and `LanguageGraph`; the C++ path adapts clang-uml JSON
+directly. This tool displays the topology, routes the arrows, colors CRAP,
+and lets you click.
 
 The IR is **topology**: the namespace tree, classes, and edges. **Metrics**
 (CC, coverage, CRAP, killed/survived/uncovered) come from `.metrics/` snapshots produced
@@ -537,14 +538,14 @@ extractor must satisfy `LanguageSource`:
 | `extract` | slice that member out of the file text |
 | `title` | window title |
 
-**Clojure** (`uml-viewer.clojure-language.source-clojure`) is the only
-implementation today: it maps `:ns` to `src/...clj` (or `.cljc` / `.cljs`)
-and finds the top-level `(defn name …)` / `(defn- name …)` so the window can
-jump to that line. That locate/line step is not enough for Java or C — those
-need a parser or language server, and a richer identity (`:class`,
-`:signature`, `:file`). The protocol is the seam; do not special-case
-languages in the class card. Main constructs the extractor and passes it to
-Core.
+**Clojure** (`uml-viewer.clojure-language.source-clojure`) maps `:ns` to
+`src/...clj` (or `.cljc` / `.cljs`) and finds the top-level `(defn name …)` /
+`(defn- name …)`. **C++** uses clang-uml's JSON class diagram and keeps its
+qualified class identity plus file, line, and column; it does not parse C++
+in the viewer. See [C++ support on Windows](docs/cpp-clang-uml.md) for setup,
+the real-extractor fixture, and known limits. The protocol is the seam; do
+not special-case languages in the class card. Main constructs extractors and
+passes them to Core.
 
 Quil stays in `adapters.draw` and `adapters.sketch`. The rest of the engine
 does not depend on Processing.

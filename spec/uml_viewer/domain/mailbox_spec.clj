@@ -81,7 +81,8 @@
     (let [s {:path "examples/library.edn" :mail-seen 0 :waiting true}
           next (document/apply-mail s {:id 3 :op :display :path "examples/library.edn"})]
       (should= 3 (:mail-seen next))
-      (should (.endsWith (:path next) "examples/library.edn"))
+      (should= (.getCanonicalPath (io/file "examples/library.edn"))
+               (.getCanonicalPath (io/file (:path next))))
       (should (seq (get-in next [:scene :classes])))
       (should-not (:waiting next))))
 

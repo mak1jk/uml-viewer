@@ -1,6 +1,7 @@
 (ns uml-viewer.main.uml-viewer
   (:require [uml-viewer.adapters.core :as core]
             [uml-viewer.clojure-language.source-clojure :as clj-source]
+            [uml-viewer.cpp-language.source-cpp]
             [uml-viewer.domain.log :as log])
   (:gen-class))
 
