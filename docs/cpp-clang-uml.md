@@ -89,7 +89,7 @@ reusing or releasing the code beyond the fork and review process.
 |------------|----------|---------------------|
 | 1. Fork and baseline | Fork `mak1jk/uml-viewer`, `origin` fork, `upstream` `unclebob/uml-viewer`, branch `feat/cpp-clang-uml`; original suite: 343 examples, 2 failures with en-US locale | Done; both failures are recorded below |
 | 2. Real extraction | CMake/MSVC build and clang-uml 0.6.3 JSON extraction from the compilable fixture; two same-named `Node` classes, inheritance, dependency, overloads | Done |
-| 3. Adapter | `clj -M:spec`: 349 examples, 2 failures; C++ and source-window specs pass; adapter asserts edges, IDs, overloads and source locations. A regression spec checks that nearby Clojure metrics do not collapse C++ overloads | Done; full-suite failures match the baseline |
+| 3. Adapter | Windows/en-US full suite: 351 examples, 0 failures, 1396 assertions; C++ and source-window specs pass. A regression spec checks that nearby Clojure metrics do not collapse C++ overloads | Done |
 | 4. Viewer | Windows UI: opened `model`, `store`, and `app`; distinct `Node` classes and both `run` overloads visible; source positions highlighted. Real re-extraction on the watched path changed relationships 2 → 1 → 2 and the dependency arrow disappeared/reappeared | Done |
 
 For checkpoint 4, source clicks opened `model/node.hpp:6`,
@@ -100,8 +100,8 @@ arrow remained visible during dependency removal. The restored EDN SHA256
 `4B2735506E8A067C5ABACD85FDDE156150004FD9EE2FB09CA3CE32E821CAA956`
 matches the earlier repeat conversion.
 
-The two unchanged full-suite failures on Windows are the LF-vs-CRLF assertion
-in `ir_generator_spec.clj:155` and the mailbox `:display` assertion in
-`mailbox_spec.clj:84`. With `JAVA_TOOL_OPTIONS=-Duser.language=en
--Duser.country=US`, the original baseline had 343 examples and the current
-suite has 349 after adding six examples; no tests were skipped or weakened.
+The original Windows/en-US baseline had 343 examples and two failures. The
+stderr assertion now expects the platform newline emitted by `println`, and
+the mailbox assertion compares canonical paths so Windows separators do not
+change its meaning. The current full suite has 351 examples, 0 failures, and
+1396 assertions; no tests were skipped.
