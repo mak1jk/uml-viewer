@@ -234,8 +234,10 @@
         visible (into ids foreign-ids)
         edges (filterv #(and (visible (:from %)) (visible (:to %)))
                        (policy/apply-edge-kinds
-                         (policy/merge-edges
-                           (into (:internal parts) (:foreign-edges parts)))
+                         (let [relations (into (:internal parts) (:foreign-edges parts))]
+                           (if (:preserve-parallel-edges doc)
+                             relations
+                             (policy/merge-edges relations)))
                          kinds omit))
         boxes (mapv (fn [c]
                       (cond-> c
@@ -280,9 +282,12 @@
         (:packages view)))
 
 (defn- leaf-dep [e]
-  {:from (or (:orig-from e) (:from e))
-   :to (or (:orig-to e) (:to e))
-   :violating (boolean (:violating e))})
+  (cond-> {:from (or (:orig-from e) (:from e))
+           :to (or (:orig-to e) (:to e))
+           :violating (boolean (:violating e))}
+    (:kind e) (assoc :kind (:kind e))
+    (:label e) (assoc :label (:label e))
+    (:access e) (assoc :access (:access e))))
 
 (defn- merge-direction-edges [edges]
   (->> edges

@@ -1,9 +1,9 @@
 # C++ support (first slice)
 
 The viewer consumes **clang-uml JSON class diagrams**. It does not parse C++.
-The adapter currently displays namespaces, classes, `extension` (inheritance)
-and `dependency` relationships, and navigates to class, method, and field
-source locations. Class IDs include the qualified namespace; overloads keep
+The adapter displays namespaces, classes, `extension` (inheritance),
+`dependency`, `association`, and `aggregation` relationships, and navigates
+to class, method, and field source locations. Class IDs include the qualified namespace; overloads keep
 parameter types and source locations so same-named methods remain distinct.
 
 ## Windows setup
@@ -58,7 +58,10 @@ above re-extracts the live fixture and does not use that snapshot as a mock.
 
 The adapter reads clang-uml `elements`, `relationships`, `bases`, and
 `source_location` data. It maps clang-uml class IDs to viewer edges, retains
-the original IDs, and stores a canonical source root plus clang-uml's file,
+relationship labels, access, and original IDs, and preserves distinct
+relationships between the same two classes. Aggregation and composition
+diamonds appear at the source (owner) end of an edge. It stores a canonical
+source root plus clang-uml's file,
 line, and column. Because clang-uml already emits a complete class graph,
 this path converts its JSON directly to hierarchical viewer IR; it does not
 change the `LanguageGraph` protocol, whose current scanner contract omits the

@@ -242,7 +242,7 @@
                  (< (:y br) (geom/bottom ar)))))))))
 
 (describe "routing"
-  (it "marks each edge kind with the matching head"
+  (it "places ownership diamonds at the source and other markers at the target"
     (let [d (ir/normalize
               {:packages
                [{:id :p :label "P"
@@ -252,8 +252,9 @@
                        {:from :a :to :b :kind :aggregation}
                        {:from :a :to :b :kind :composition}
                        {:from :a :to :b :kind :inheritance}]})
-          heads (map :head (:edges (route/route (layout/layout d))))]
-      (should= [:open :open :diamond :diamond-fill :triangle] heads)))
+          edges (:edges (route/route (layout/layout d)))]
+      (should= [:open :open nil nil :triangle] (map :head edges))
+      (should= [nil nil :diamond :diamond-fill nil] (map :tail edges))))
 
   (it "starts and ends on the class boxes"
     (let [scene (route/route (layout/layout sample))

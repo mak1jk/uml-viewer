@@ -17,6 +17,33 @@
   (clang-uml/convert (extracted-json) "examples/cpp-fixture"))
 
 (describe "clang-uml adapter"
+  (it "keeps typed, labelled parallel associations and aggregations through the class view"
+    (let [diagram {:name "Relations"
+                   :elements [{:id "1" :type "class" :name "Owner" :namespace "demo"
+                               :source_location {:file "owner.hpp" :line 1}}
+                              {:id "2" :type "class" :name "Part" :namespace "demo"
+                               :source_location {:file "part.hpp" :line 1}}]
+                   :relationships [{:source "1" :destination "2" :type "aggregation"
+                                    :label "owned" :access "private"}
+                                   {:source "1" :destination "2" :type "association"
+                                    :label "observed" :access "public"}]}
+          doc (clang-uml/convert diagram ".")
+          scene (document/compile-view doc "target/cpp-no-metrics" [:demo])
+          expected [{:from :demo.Owner :to :demo.Part :kind :aggregation
+                     :label "owned" :access "private"}
+                    {:from :demo.Owner :to :demo.Part :kind :association
+                     :label "observed" :access "public"}]]
+      (should= expected (:edges doc))
+      (should= expected (:edges (hierarchy/view-at doc [:demo])))
+      (should= (mapv #(select-keys % [:from :to :kind :label :access]) expected)
+               (->> (hierarchy/apply-declutter (hierarchy/view-at doc [:demo]) :arrows)
+                    :edges first :deps
+                    (mapv #(select-keys % [:from :to :kind :label :access]))))
+      (should= 2 (count (:edges scene)))
+      (should= :diamond (:tail (first (:edges scene))))
+      (should (vector? (:start-tip (first (:edges scene)))))
+      (should= [] (:diagnostics doc))))
+
   (it "preserves namespace-qualified class identity and exact relationships"
     (let [doc (fixture-document)
           by-id (into {} (map (juxt :id identity) (:classes doc)))

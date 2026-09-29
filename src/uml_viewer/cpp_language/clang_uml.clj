@@ -95,6 +95,8 @@
     "extension" :inheritance
     "inheritance" :inheritance
     "dependency" :dependency
+    "association" :association
+    "aggregation" :aggregation
     nil))
 
 (defn convert
@@ -162,7 +164,13 @@
                                      (diagnostic :unresolved-relationship entity
                                                  "relationship endpoint is absent from the emitted class elements"))]
                         :else
-                        [(conj edges {:from from :to to :kind kind}) diagnostics])))
+                        [(conj edges
+                               (cond-> {:from from :to to :kind kind}
+                                 (seq (:label relationship))
+                                 (assoc :label (:label relationship))
+                                 (seq (:access relationship))
+                                 (assoc :access (:access relationship))))
+                         diagnostics])))
                   [[] []]
                   (or (:relationships diagram) []))
           base-diags
@@ -183,6 +191,7 @@
       {:title (or (:name diagram) "C++ class diagram")
        :language :cpp
        :hierarchical true
+       :preserve-parallel-edges true
        :source-root root
        :metrics-status :unavailable
        :classes converted
