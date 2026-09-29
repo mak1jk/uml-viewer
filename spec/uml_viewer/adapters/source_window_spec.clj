@@ -28,4 +28,8 @@
       (should (str/includes? doc "int <span class='src-col'>r</span>"))
       (should (str/includes? doc "<span class='src-col'>r</span>"))
       (should (str/includes? doc "un() &lt; 2;"))
-      (should-not (str/includes? doc "class='kw'")))))
+      (should-not (str/includes? doc "class='kw'"))))
+
+  (it "uses the original C++ column when a tab precedes it"
+    (let [doc (source-window/source->html "x.hpp" "\tint run();\n" 1 2 :cpp)]
+      (should (str/includes? doc "  <span class='src-col'>i</span>nt run();")))))

@@ -62,16 +62,17 @@
   (str/replace (or line "") "\t" "  "))
 
 (defn- cpp-line-html [line column]
-  (let [line (expand-tabs line)
+  (let [line (or line "")
+        escaped (fn [text] (html-escape (expand-tabs text)))
         n (when (and (number? column) (pos? column))
             (min (count line) (dec (int column))))]
     (if (and n (< n (count line)))
-      (str (html-escape (subs line 0 n))
+      (str (escaped (subs line 0 n))
            "<span class='src-col'>"
-           (html-escape (subs line n (inc n)))
+           (escaped (subs line n (inc n)))
            "</span>"
-           (html-escape (subs line (inc n))))
-      (html-escape line))))
+           (escaped (subs line (inc n))))
+      (escaped line))))
 
 (defn source-lines->html
   ([source] (source-lines->html source nil nil :clojure))
