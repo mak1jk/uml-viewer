@@ -69,6 +69,9 @@ infer missing relationships. Unsupported
 element or relationship kinds, unresolved endpoints, and missing source
 locations are reported in the EDN `:diagnostics`; duplicate class identities
 are rejected. Metrics are explicitly `:unavailable` for C++.
+The viewer skips its Clojure metric overlay for C++ documents: that overlay
+groups operations by name and would collapse C++ overloads. Clojure diagrams
+still use the overlay.
 
 This slice does not model templates as specializations, enums, free functions,
 or non-class UML entities; clang-uml elements outside `class` are diagnosed
@@ -83,11 +86,19 @@ reusing or releasing the code beyond the fork and review process.
 |------------|----------|---------------------|
 | 1. Fork and baseline | Fork `mak1jk/uml-viewer`, `origin` fork, `upstream` `unclebob/uml-viewer`, branch `feat/cpp-clang-uml`; original suite: 343 examples, 2 failures with en-US locale | Done; both failures are recorded below |
 | 2. Real extraction | CMake/MSVC build and clang-uml 0.6.3 JSON extraction from the compilable fixture; two same-named `Node` classes, inheritance, dependency, overloads | Done |
-| 3. Adapter | `clj -M:spec`: 348 examples, 2 failures; C++ and source-window specs pass; adapter asserts edges, IDs, overloads and source locations | Done; full-suite failures match the baseline |
-| 4. Viewer | Viewer process launched on generated EDN, consumed a `:display` command, and reports watching that file. Fixture verifier removes and restores the dependency on the same EDN path and checks deterministic regeneration | Pipeline done. Visual navigation, source opening/highlight, and visible live reload remain **unverified**: this session's CUA reports no native app/window inventory and exposes no `listApps`/`listWindows`; next step is an interactive desktop check |
+| 3. Adapter | `clj -M:spec`: 349 examples, 2 failures; C++ and source-window specs pass; adapter asserts edges, IDs, overloads and source locations. A regression spec checks that nearby Clojure metrics do not collapse C++ overloads | Done; full-suite failures match the baseline |
+| 4. Viewer | Windows UI: opened `model`, `store`, and `app`; distinct `Node` classes and both `run` overloads visible; source positions highlighted. Real re-extraction on the watched path changed relationships 2 → 1 → 2 and the dependency arrow disappeared/reappeared | Done |
+
+For checkpoint 4, source clicks opened `model/node.hpp:6`,
+`store/node.hpp:4`, and `controller.hpp:10` with the reported line and
+column highlighted. After each fixture change, CMake rebuilt it, clang-uml
+re-extracted JSON, and the adapter rewrote the same EDN file. The inheritance
+arrow remained visible during dependency removal. The restored EDN SHA256
+`4B2735506E8A067C5ABACD85FDDE156150004FD9EE2FB09CA3CE32E821CAA956`
+matches the earlier repeat conversion.
 
 The two unchanged full-suite failures on Windows are the LF-vs-CRLF assertion
 in `ir_generator_spec.clj:155` and the mailbox `:display` assertion in
 `mailbox_spec.clj:84`. With `JAVA_TOOL_OPTIONS=-Duser.language=en
 -Duser.country=US`, the original baseline had 343 examples and the current
-suite has 348 after adding five examples; no tests were skipped or weakened.
+suite has 349 after adding six examples; no tests were skipped or weakened.

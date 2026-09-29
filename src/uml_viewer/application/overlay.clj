@@ -176,7 +176,8 @@
 
 (defn apply-metrics
   [doc metrics]
-  (if (and (empty? (:crap metrics)) (empty? (:mutate metrics)))
+  (if (or (= :cpp (:language doc))
+          (and (empty? (:crap metrics)) (empty? (:mutate metrics))))
     doc
     (cond
       (:hierarchical doc)
